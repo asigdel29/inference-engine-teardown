@@ -1,0 +1,3 @@
+{"id":"short","prompt":"Name the largest planet in our solar system.","max_tokens":12}
+{"id":"prefix-a","prompt":"Translate this sentence into French. The apple is red.","max_tokens":24}
+{"id":"prefix-b","prompt":"Translate this sentence into French. The apple is green.","max_tokens":24}

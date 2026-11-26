@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "inference-engine-teardown"
+version = "0.1.0"
+description = "Replay reproducible streaming inference workloads"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+readme = "README.md"
+
+[project.scripts]
+inference-engine-teardown = "inference_teardown.bench:main"
+
+[tool.setuptools]
+packages = ["inference_teardown"]
+
+[tool.setuptools.package-data]
+inference_teardown = ["workload.jsonl"]

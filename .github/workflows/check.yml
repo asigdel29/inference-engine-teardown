@@ -1,0 +1,39 @@
+name: CI
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        python: ['3.10', '3.12', '3.14']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: make check
+      - run: python -m pip wheel --no-deps --wheel-dir dist .
+      - run: python -m pip install dist/*.whl
+      - name: Verify installed CLI and packaged workload
+        working-directory: ${{ runner.temp }}
+        run: |
+          inference-engine-teardown --help
+          python -c 'from importlib.resources import files; assert (files("inference_teardown") / "workload.jsonl").is_file()'
+  transport-benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python fixture_benchmark.py runs/transport
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: loopback-transport-${{ github.run_attempt }}
+          path: runs/transport/
+          if-no-files-found: error
