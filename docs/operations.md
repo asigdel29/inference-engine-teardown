@@ -3,7 +3,7 @@
 ## Verify the client
 
 1. Run `make check` from the repository root.
-2. Run `python3 fixture_benchmark.py runs/transport-001`.
+2. Run `INFERENCE_TEARDOWN_BIN=$PWD/target/release/inference-engine-teardown python3 fixture_benchmark.py runs/transport-001`.
 3. Inspect `runs/transport-001/summary.json`.
 4. Confirm that all 60 fixture requests succeeded.
 

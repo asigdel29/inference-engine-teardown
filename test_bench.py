@@ -9,7 +9,7 @@ import tempfile
 import threading
 import unittest
 
-from inference_teardown.bench import events
+from tests.reference_runner import events
 
 
 class RunnerTests(unittest.TestCase):
@@ -33,7 +33,18 @@ class RunnerTests(unittest.TestCase):
                                "--endpoint", f"http://127.0.0.1:{server.server_port}/{route}"]
                     run = subprocess.run(command, capture_output=True, text=True)
                     self.assertEqual(run.returncode, code, run.stderr)
+                    reference = Path(tmp) / (route + "-reference")
+                    reference_command = [sys.executable, "tests/reference_runner.py",
+                                         "--workload", "inference_teardown/workload.jsonl",
+                                         *command[3:]]
+                    reference_command[reference_command.index(str(out))] = str(reference)
+                    ref = subprocess.run(reference_command, capture_output=True, text=True)
+                    self.assertEqual(ref.returncode, code, ref.stderr)
+                    reference_rows = [json.loads(line) for line in (reference / "trials.jsonl").read_text().splitlines()]
                     rows = [json.loads(line) for line in (out / "trials.jsonl").read_text().splitlines()]
+                    fields = ("id", "prompt", "response", "repetition", "ok", "completion_tokens", "finish_reason")
+                    self.assertEqual([[row[key] for key in fields] for row in rows],
+                                     [[row[key] for key in fields] for row in reference_rows])
                     self.assertEqual(len(rows), 3)
                     summary = json.loads((out / "summary.json").read_text())
                     self.assertEqual(summary["succeeded"], 3 if code == 0 else 0)

@@ -1,8 +1,10 @@
 # Inference engine teardown
 
-Replay one prompt trace against a streaming completions endpoint. Use Python 3.10 or later. The runner uses the standard library.
+Replay one prompt trace against a streaming completions endpoint. The standalone Rust executable uses Tokio and streams responses over HTTP or HTTPS.
 
 ## Quickstart
+
+Install the standalone client with `cargo install --locked --path .`. For the Python module entry point, install the wheel with `python -m pip install .`. Source builds require a Rust toolchain.
 
 Run `make check`. Run `make demo` to exercise three requests against a loopback fixture. The test also verifies a connection failure during each stream.
 
@@ -11,7 +13,7 @@ Run `make check`. Run `make demo` to exercise three requests against a loopback 
 Start a compatible engine with streaming completions and usage reporting enabled. Copy `fixture-config.json` and replace all five fixture values with the actual run configuration.
 
 ```sh
-python3 -m inference_teardown.bench --engine vllm --model MODEL --config config.json \
+inference-engine-teardown --engine vllm --model MODEL --config config.json \
   --endpoint http://localhost:8000/v1/completions --out runs/vllm-001
 ```
 
@@ -56,4 +58,4 @@ make graph
 graphify query "run_trial"
 ```
 
-The build reads tracked Python files from the working tree, including tests. Stage new Python files before you refresh the map. Graphify uses local syntax analysis with model backends disabled. The system design diagrams describe runtime behavior.
+The build reads tracked Rust and Python files from the working tree, including tests. Stage new source files before you refresh the map. Graphify uses local syntax analysis with model backends disabled. The system design diagrams describe runtime behavior.

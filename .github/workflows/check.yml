@@ -21,6 +21,7 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: |
           inference-engine-teardown --help
+          python -m inference_teardown.bench --help
           python -c 'from importlib.resources import files; assert (files("inference_teardown") / "workload.jsonl").is_file()'
   transport-benchmark:
     runs-on: ubuntu-latest
@@ -30,7 +31,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python fixture_benchmark.py runs/transport
+      - run: cargo build --release --locked
+      - run: INFERENCE_TEARDOWN_BIN="$PWD/target/release/inference-engine-teardown" python fixture_benchmark.py runs/transport
       - uses: actions/upload-artifact@v4
         if: always()
         with:

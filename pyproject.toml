@@ -1,17 +1,18 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77", "setuptools-rust>=1.11"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "inference-engine-teardown"
-version = "0.1.0"
+version = "0.2.0"
 description = "Replay reproducible streaming inference workloads"
 requires-python = ">=3.10"
-license = {file = "LICENSE"}
+license = "Apache-2.0"
 readme = "README.md"
 
-[project.scripts]
-inference-engine-teardown = "inference_teardown.bench:main"
+[[tool.setuptools-rust.bins]]
+target = "inference-engine-teardown"
+args = ["--locked"]
 
 [tool.setuptools]
 packages = ["inference_teardown"]
