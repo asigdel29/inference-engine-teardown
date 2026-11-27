@@ -6,3 +6,4 @@ dist/
 .venv/
 
 /graphify-out/cache/
+/target/

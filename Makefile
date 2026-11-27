@@ -1,11 +1,16 @@
-.PHONY: check demo bench
+# Build and exercise the native streaming client.
+.PHONY: check demo bench graph
+BIN := $(CURDIR)/target/release/inference-engine-teardown
 check:
-	python3 -m unittest -v
+	cargo fmt --check
+	cargo clippy --all-targets --locked -- -D warnings
+	cargo test --locked
+	cargo build --release --locked
+	INFERENCE_TEARDOWN_BIN=$(BIN) python3 -m unittest -v
 demo:
-	python3 -m unittest -v test_bench.RunnerTests.test_cli
+	cargo build --release --locked
+	INFERENCE_TEARDOWN_BIN=$(BIN) python3 -m unittest -v test_bench.RunnerTests.test_cli
 bench:
-	python3 -m inference_teardown.bench $(ARGS)
-
-.PHONY: graph
+	cargo run --release --locked -- $(ARGS)
 graph:
 	bash scripts/graphify.sh
