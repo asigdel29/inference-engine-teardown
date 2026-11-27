@@ -38,3 +38,22 @@ CI tests Python 3.10, 3.12, and 3.14. Each job builds a wheel and checks its ins
 Run `python3 fixture_benchmark.py runs/transport-001` to measure loopback transport overhead. CI uploads its manifest, trial records, and summary. The fixture sends 60 requests with four concurrent clients and synthetic usage counts.
 
 Use `--repetitions 20` for repeated engine trials. The summary reports nearest-rank p50, p95, and p99 latencies for successful requests. Throughput includes elapsed time for failures. Output-token throughput requires usage counts for every successful request.
+
+## Design and operation
+
+- [System design and UML diagrams](docs/system-design.md)
+- [Experiment and troubleshooting guide](docs/operations.md)
+- [Repository instructions](AGENTS.md)
+
+## Graphify source map
+
+Read the [source map report](graphify-out/GRAPH_REPORT.md) or query the [graph data](graphify-out/graph.json). Open the [interactive map](graphify-out/graph.html) locally in a browser.
+
+Install Graphify 0.9.76 with `uv tool install graphifyy==0.9.76`. Run these commands from the repository root.
+
+```sh
+make graph
+graphify query "run_trial"
+```
+
+The build reads tracked Python files from the working tree, including tests. Stage new Python files before you refresh the map. Graphify uses local syntax analysis with model backends disabled. The system design diagrams describe runtime behavior.
