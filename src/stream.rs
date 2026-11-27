@@ -6,7 +6,8 @@ use std::{io, time::Instant};
 use tokio::io::{AsyncBufRead, AsyncBufReadExt, BufReader};
 use tokio_util::io::StreamReader;
 
-#[derive(Default, serde::Serialize)]
+/// Accumulate output and engine usage independently of the final trial status.
+#[derive(Default)]
 pub struct Observation {
     pub response: String,
     pub first_text_s: Option<f64>,

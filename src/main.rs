@@ -14,6 +14,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+/// Replay one workload and write the full trial records to a new directory.
 #[derive(Parser)]
 #[command(version, about)]
 struct Options {
@@ -37,6 +38,7 @@ struct Options {
     timeout: f64,
 }
 
+/// Read input rows and validate their IDs before starting a run.
 fn load_workload(bytes: &[u8]) -> Result<Vec<Value>> {
     let mut trials = Vec::new();
     let mut seen = HashSet::new();
@@ -88,22 +90,21 @@ async fn run_trial(
     if let Err(err) = result {
         row["error"] = json!(format!("{err:#}"));
     }
-    row.as_object_mut().unwrap().extend(
-        serde_json::to_value(obs)
-            .unwrap()
-            .as_object()
-            .unwrap()
-            .clone(),
-    );
+    row["response"] = obs.response.into();
+    row["first_text_s"] = obs.first_text_s.into();
+    row["completion_tokens"] = obs.completion_tokens.into();
+    row["finish_reason"] = obs.finish_reason.into();
     row
 }
 
+/// Compute nearest-rank percentiles for successful measurements.
 fn percentiles(values: &mut [f64]) -> Value {
     values.sort_by(f64::total_cmp);
     let at = |p: usize| (!values.is_empty()).then(|| values[(values.len() * p).div_ceil(100) - 1]);
     json!({"p50":at(50),"p95":at(95),"p99":at(99)})
 }
 
+/// Flush each JSON document before returning to the caller.
 fn write_json(path: &Path, value: &Value) -> Result<()> {
     let mut file = BufWriter::new(File::create(path)?);
     serde_json::to_writer_pretty(&mut file, value)?;
@@ -150,7 +151,17 @@ async fn run(opts: &Options) -> Result<bool> {
     fs::create_dir(&opts.out).context("Choose a fresh output directory")?;
     write_json(
         &opts.out.join("manifest.json"),
-        &json!({"schema_version":1,"engine":opts.engine,"model":opts.model,"endpoint":opts.endpoint,"concurrency":opts.concurrency,"repetitions":opts.repetitions,"timeout":opts.timeout,"config":config,"workload_sha256":format!("{:x}",Sha256::digest(bytes))}),
+        &json!({
+            "schema_version": 1,
+            "engine": opts.engine,
+            "model": opts.model,
+            "endpoint": opts.endpoint,
+            "concurrency": opts.concurrency,
+            "repetitions": opts.repetitions,
+            "timeout": opts.timeout,
+            "config": config,
+            "workload_sha256": format!("{:x}", Sha256::digest(bytes)),
+        }),
     )?;
     let start = Instant::now();
     let mut out = BufWriter::new(File::create(opts.out.join("trials.jsonl"))?);
@@ -192,7 +203,15 @@ async fn run(opts: &Options) -> Result<bool> {
     let success = latency.len();
     write_json(
         &opts.out.join("summary.json"),
-        &json!({"requests":total,"succeeded":success,"wall_s":wall,"requests_per_s":success as f64/wall,"latency_s":percentiles(&mut latency),"first_text_s":percentiles(&mut first),"output_tokens_per_s":tokens.filter(|_|success>0).map(|n|n as f64/wall)}),
+        &json!({
+            "requests": total,
+            "succeeded": success,
+            "wall_s": wall,
+            "requests_per_s": success as f64 / wall,
+            "latency_s": percentiles(&mut latency),
+            "first_text_s": percentiles(&mut first),
+            "output_tokens_per_s": tokens.filter(|_| success > 0).map(|n| n as f64 / wall),
+        }),
     )?;
     Ok(success == total)
 }

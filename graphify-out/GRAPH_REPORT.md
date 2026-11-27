@@ -1,7 +1,7 @@
 # Graph Report - inference-engine-teardown  (2026-11-27)
 
 ## Corpus Check
-- 8 files · ~1,834 words
+- 8 files · ~1,936 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
